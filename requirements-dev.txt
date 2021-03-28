@@ -1,0 +1,4 @@
+-e .
+jupyterhub
+jupyterhub-simplespawner
+pre-commit
