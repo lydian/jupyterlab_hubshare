@@ -4,6 +4,9 @@
 
 share notebooks on jupyterhub
 
+![JupyterHub-share-demo-_1_](https://user-images.githubusercontent.com/678485/112790349-03a7b400-9014-11eb-9ef4-ad8072614b50.gif)
+
+
 
 This extension is composed of a Python package named `jupyterlab_hubshare`
 for the server extension and a NPM package named `jupyterlab_hubshare`
@@ -23,6 +26,58 @@ In general, there will be multiple use case when using jupyterhub:
 ```bash
 pip install jupyterlab_hubshare
 ```
+
+## Configuration
+The extension supports multiple use cases: 
+
+### Use Case 1: All users on jupyterhub share the same Interface
+In this scenario, the path for user A and user B are exactly the same, therefore we only need to configure the URL
+
+```python
+c.HubShare.share_url_template = {
+    "path": "/user-redirect/"
+    "qs": {"from": "share", "path": "{path}"}
+}
+```
+This will make the sharable link looks like http://your.jupyter/user-redirect/?from=share&path=path/to/ipynb
+
+### Use Case 2: User have their own work space but can still access others workspace
+This is honestly my preferable settings, for example:
+
+- userA work space: `path/workspaces/userA/`
+- userB work space: `path/workspaces/userB/`
+- but both userA and userB have a `shortcut` folder links to `path/workspaces/` so that they can still check others workspaces. 
+
+In this case, you can configure that with: 
+```python
+c.HubShare.share_url_template = {
+    "path": "/user-redirect/"
+    "qs": {"from": "share", "path": "shortcut/{user}/{path}"}
+}
+```
+This will make the shareable link looks like http://your.jupyter/user-redirect/?from=share&path=shortcut/userA/path/to/ipynb
+(if sharing userA's notebook)
+
+### Use Case 3: User have their own work space, and they are unable to directly reach to others workspace
+This is much more like the previous scenario, but there's no `shortcut` folder to give access to other folder.
+In this case, you will need to also configure the contents_manager: 
+```python
+c.HubShare.contents_maanger = {
+    "manager_cls": FileContentManager,
+    "kwargs": {
+        "root_dir": "path/to/workspaces/
+    }
+}
+c.HubShare.share_url_template = {
+    "path": "/user-redirect/"
+    "qs": {"from": "share", "path": "{user}/{path}"}
+}
+
+```
+This will create a sharable link looks like:
+This will make the shareable link looks like http://your.jupyter/user-redirect/?from=share&path=userA/path/to/ipynb
+(if sharing userA's notebook)
+
 
 
 ## Troubleshoot
@@ -79,6 +134,25 @@ By default, the `jlpm run build` command generates the source maps for this exte
 ```bash
 jupyter lab build --minimize=False
 ```
+
+There's also a quick target in Makefile: 
+```bash
+make venv
+``` 
+build the workspace
+```bash
+make build
+```
+build the package
+```bash
+make watch
+```
+to quickly develop with jupyterlab
+```bash
+make jupyterhub
+```
+to test the share function in jupyterhub
+
 
 ### Uninstall
 
