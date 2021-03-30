@@ -1,4 +1,6 @@
+import base64
 import datetime
+import urllib.parse
 from unittest import mock
 
 import tornado
@@ -65,19 +67,22 @@ class TestBaseMixin(object):
         return dummy_handler
 
     def test_get_notebook_file_not_found(self, dummy_handler):
+        encoded_path = base64.b64encode("/path/to/notebook.ipynb".encode("utf-8"))
         dummy_handler._cm.file_exists.return_value = False
         with pytest.raises(tornado.web.HTTPError):
-            dummy_handler.get_notebook("/path/to/notebook.ipynb")
+            dummy_handler.get_notebook(encoded_path)
 
     def test_get_notebook_wrong_file_type(self, dummy_handler):
+        encoded_path = base64.b64encode("/path/to/someformat".encode("utf-8"))
         with pytest.raises(tornado.web.HTTPError):
-            dummy_handler.get_notebook("/path/to/some")
+            dummy_handler.get_notebook(encoded_path)
 
     def test_get_notebook_success(self, dummy_handler):
+        encoded_path = base64.b64encode("/path/to/notebook.ipynb".encode("utf-8"))
         fake_content = {"name": "notebook.ipynb"}
         dummy_handler._cm.get.return_value = fake_content
 
-        assert dummy_handler.get_notebook("/path/to/notebook.ipynb") == fake_content
+        assert dummy_handler.get_notebook(encoded_path) == fake_content
 
     def test_to_json(self, dummy_handler):
         assert (
@@ -87,21 +92,53 @@ class TestBaseMixin(object):
 
 
 @pytest.mark.parametrize(
-    "template,expected_output",
+    "use_jupyterhub_redirect,expected_first_url_component",
+    [(True, "/user-redirect/"), (False, "/")],
+)
+@pytest.mark.parametrize(
+    "use_preview,expected_second_url_component",
+    [(True, "?hubshare-preview={FINAL_PATH}"), (False, "{FINAL_PATH}")],
+)
+@pytest.mark.parametrize(
+    "path_template,input_path,expected_file_path",
     [
-        # replace in path
-        (
-            {"path": "/user-redirect/{user}/{path}"},
-            "/user-redirect/test_user/path/to/file",
-        ),
-        ({"path": "/user-redirect/{path}"}, "/user-redirect/path/to/file"),
-        # replace in query string
-        (
-            {"path": "/user-redirect/", "qs": {"share-path": "{user}/{path}"}},
-            "/user-redirect/?share-path=test_user/path/to/file",
-        ),
+        ("{path}", "path/to/file", "path/to/file"),
+        ("{user}/{path}", "path/to/file", "test_user/path/to/file"),
     ],
 )
-def test_get_share_path(template, expected_output, monkeypatch):
+@pytest.mark.parametrize(
+    "base_url", ["", "https://example.com/", "https://example.com"]
+)
+def test_get_share_path(
+    use_jupyterhub_redirect,
+    use_preview,
+    base_url,
+    path_template,
+    input_path,
+    expected_first_url_component,
+    expected_second_url_component,
+    expected_file_path,
+    monkeypatch,
+):
     monkeypatch.setenv("JUPYTERHUB_USER", "test_user")
-    assert get_share_path(template, {"path": "path/to/file"}) == expected_output
+    if use_preview:
+        expected_file_path = urllib.parse.quote(
+            base64.b64encode(expected_file_path.encode("utf-8"))
+        )
+
+    expected_final_path = (
+        expected_first_url_component
+        + expected_second_url_component.format(FINAL_PATH=expected_file_path)
+    )
+    if base_url:
+        expected_final_path = "https://example.com" + expected_final_path
+    assert (
+        get_share_path(
+            use_jupyterhub_redirect,
+            use_preview,
+            base_url,
+            path_template,
+            {"path": input_path},
+        )
+        == expected_final_path
+    )

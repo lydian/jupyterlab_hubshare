@@ -2,6 +2,7 @@ import datetime
 import os
 import json
 import logging
+import base64
 import urllib.parse
 from importlib import import_module
 
@@ -9,7 +10,7 @@ from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_path_join
 import nbformat
 import tornado
-from IPython.html.base.handlers import IPythonHandler
+from notebook.base.handlers import IPythonHandler
 from nbconvert import HTMLExporter
 
 
@@ -36,11 +37,12 @@ class BaseMixin(object):
         logging.info(f"Register contents manager: {type(self._cm)}")
 
     def get_notebook(self, path):
-        if not self._cm.file_exists(path):
+        decoded_path = base64.b64decode(path).decode("utf-8")
+        if not self._cm.file_exists(decoded_path):
             raise tornado.web.HTTPError(404, reason="File Not Found")
-        if path.rsplit(".", 1)[-1].lower() != "ipynb":
+        if decoded_path.rsplit(".", 1)[-1].lower() != "ipynb":
             raise tornado.web.HTTPError(400, reason="Not ipynb File")
-        return self._cm.get(path, content=True)
+        return self._cm.get(decoded_path, content=True)
 
     def to_json(self, content):
         def convert_dt(obj):
@@ -50,27 +52,18 @@ class BaseMixin(object):
         return json.dumps(content, default=convert_dt)
 
 
-def get_share_path(path_template, data):
-    def replace_pattern(pattern):
-        replace_kwargs = {}
-        if "{path}" in pattern:
-            replace_kwargs["path"] = data["path"]
-        if "{user}" in pattern:
-            replace_kwargs["user"] = os.environ["JUPYTERHUB_USER"]
-        if replace_kwargs:
-            pattern = pattern.format(**replace_kwargs)
-        return pattern
+def get_share_path(use_jupyterhub_redirect, use_preview, base_url, path_template, data):
 
-    output = {
-        key: replace_pattern(path_template.get(key, "")) for key in ["base_url", "path"]
-    }
-    path = output["base_url"].rstrip("/") + output["path"]
-    if "qs" in path_template:
-        path += "?" + "&".join(
-            "{}={}".format(key, urllib.parse.quote(replace_pattern(value)))
-            for key, value in path_template["qs"].items()
-        )
-    return path
+    output_path = path_template.format(
+        user=os.environ.get("JUPYTERHUB_USER"), path=data["path"]
+    )
+    if use_preview:
+        output_path = urllib.parse.quote(base64.b64encode(output_path.encode("utf-8")))
+    url = "/user-redirect/" if use_jupyterhub_redirect else "/"
+    url += f"?hubshare-preview={output_path}" if use_preview else output_path
+    if base_url:
+        url = base_url.rstrip("/") + url
+    return url
 
 
 class ShareURLHandler(BaseMixin, APIHandler):
@@ -79,9 +72,16 @@ class ShareURLHandler(BaseMixin, APIHandler):
     # Jupyter server
     @tornado.web.authenticated
     def put(self):
-        path_template = self.hub_share_config.get("share_url_template", {})
+        path_template = self.hub_share_config.get("file_path_template", "{path}")
+        use_jupyterhub_redirect = self.hub_share_config.get(
+            "use_jupyterhub_redirect", True
+        )
+        use_preview = self.hub_share_config.get("use_preview", True)
+        base_url = self.hub_share_config.get("base_url", None)
         data = json.loads(self.request.body)
-        path = get_share_path(path_template, data)
+        path = get_share_path(
+            use_jupyterhub_redirect, use_preview, base_url, path_template, data
+        )
         self.finish(json.dumps({"share_path": path}))
 
 

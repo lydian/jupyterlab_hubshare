@@ -109,9 +109,10 @@ const extension: JupyterFrontEndPlugin<void> = {
     });
 
     const params = new URLSearchParams(window.location.search);
-    if (params.get('share-path')) {
-      const path = decodeURIComponent(params.get('share-path'));
-      const name = path.split('/').pop();
+    if (params.get('hubshare-preview')) {
+      console.log(`original path: ${params.get('hubshare-preview')}`);
+      const path = params.get('hubshare-preview');
+      const name = atob(path).split('/').pop();
       console.log(`Found preview path: ${path}`);
       Promise.all([app.restored]).then(() => {
         app.commands.execute(`${BASE_NAME}:preview`, { path, name });

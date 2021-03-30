@@ -35,12 +35,17 @@ The extension supports multiple use cases:
 In this scenario, the path for user A and user B are exactly the same, therefore we only need to configure the URL
 
 ```python
-c.HubShare.share_url_template = {
-    "path": "/user-redirect/"
-    "qs": {"from": "share", "path": "{path}"}
-}
+c.HubShare.file_path_template = "{path}"
 ```
-This will make the sharable link looks like http://your.jupyter/user-redirect/?from=share&path=path/to/ipynb
+This will make the sharable link looks like http://your.jupyter/user-redirect/?hubshare-preview=path/to/ipynb
+
+if you prefer directly access the file, you can also add:
+```
+c.HubShare.use_preview = False
+```
+this will make the sharable link looks like http://your.jupyter/user-redirect/path/to/ipynb
+
+but please be aware that this will allow other user directly modify the same file, which should be avoided in most cases.
 
 ### Use Case 2: User have their own work space but can still access others workspace
 This is honestly my preferable settings, for example:
@@ -51,14 +56,17 @@ This is honestly my preferable settings, for example:
 
 In this case, you can configure that with:
 ```python
-c.HubShare.share_url_template = {
-    "path": "/user-redirect/"
-    "qs": {"from": "share", "path": "shortcut/{user}/{path}"}
-}
+c.HubShare.file_path_template = "shortcut/{user}/{path}"
 ```
-This will make the shareable link looks like http://your.jupyter/user-redirect/?from=share&path=shortcut/userA/path/to/ipynb
+This will make the shareable link looks like http://your.jupyter/user-redirect/?hubshare-preview=shortcut/userA/path/to/ipynb
 (if sharing userA's notebook)
 
+Similarly, you can also set
+```python
+c.HubShare.use_preview = False
+```
+This will make the sharable link looks like http://your.jupyter/user-redirect/shortcut/userA/path/to/ipynb
+Same as above, be aware that this will allow the other user directly modify the same file!
 ### Use Case 3: User have their own work space, and they are unable to directly reach to others workspace
 This is much more like the previous scenario, but there's no `shortcut` folder to give access to other folder.
 In this case, you will need to also configure the contents_manager:
@@ -69,16 +77,13 @@ c.HubShare.contents_maanger = {
         "root_dir": "path/to/workspaces/
     }
 }
-c.HubShare.share_url_template = {
-    "path": "/user-redirect/"
-    "qs": {"from": "share", "path": "{user}/{path}"}
-}
-
+c.HubShare.file_path_template = "{user}/{path}"
 ```
 This will create a sharable link looks like:
-This will make the shareable link looks like http://your.jupyter/user-redirect/?from=share&path=userA/path/to/ipynb
+This will make the shareable link looks like http://your.jupyter/user-redirect/?hubshare-preview=userA/path/to/ipynb
 (if sharing userA's notebook)
 
+Note that given that the current contents manager doesn't have access to other users workspaces, setting `use_preview=False` will make invalid link.
 
 
 ## Troubleshoot
