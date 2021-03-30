@@ -113,3 +113,6 @@ dmypy.json
 
 # IDE
 .vscode/
+integration-tests/examples/*
+integration-tests/jupyterhub_cookie_secret
+integration-tests/jupyterhub.sqlite
