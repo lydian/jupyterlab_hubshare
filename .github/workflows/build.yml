@@ -58,6 +58,23 @@ jobs:
 
         jupyter labextension list 2>&1 | grep -ie "jupyterlab_hubshare.*OK"
         python -m jupyterlab.browser_check
+    - name: Generate coverage report
+      run: |
+        pip install pytest
+        pip install pytest-cov
+        pytest --cov=jupyterlab_hubshare/ --cov-report=xml tests/
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./coverage1.xml,./coverage2.xml
+        directory: ./coverage/reports/
+        flags: unittests
+        env_vars: OS,PYTHON
+        name: codecov-umbrella
+        fail_ci_if_error: true
+        path_to_write_report: ./coverage/codecov_report.txt
+        verbose: true
     - name: Setup tmate session
       if: ${{ failure() }}
       uses: mxschmitt/action-tmate@v3
@@ -81,3 +98,4 @@ jobs:
       uses: pypa/gh-action-pypi-publish@master
       with:
         password: ${{ secrets.PYPI_API_TOKEN }}
+    
