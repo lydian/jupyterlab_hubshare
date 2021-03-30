@@ -1,6 +1,7 @@
 # jupyterlab_hubshare
 
 ![Github Actions Status](https://github.com/lydian/jupyterlab_hubshare/workflows/Build/badge.svg)
+[![codecov](https://codecov.io/gh/lydian/jupyterlab_hubshare/branch/master/graph/badge.svg)](https://codecov.io/gh/lydian/jupyterlab_hubshare)
 
 share notebooks on jupyterhub
 
