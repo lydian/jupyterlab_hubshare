@@ -23,6 +23,6 @@ clean:
 	rm -rf venv/
 
 
-jupyterhub:
+jupyterhub: build
 	cd integration-tests && \
 	jupyterhub --config=jupyterhub_config.py

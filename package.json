@@ -1,15 +1,15 @@
 {
   "name": "jupyterlab_hubshare",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "share notebooks on jupyterhub",
   "keywords": [
     "jupyter",
     "jupyterlab",
     "jupyterlab-extension"
   ],
-  "homepage": "https://github.com/lydian/jupyterlab_hubshre",
+  "homepage": "https://github.com/lydian/jupyterlab_hubshare",
   "bugs": {
-    "url": "https://github.com/lydian/jupyterlab_hubshre/issues"
+    "url": "https://github.com/lydian/jupyterlab_hubshare/issues"
   },
   "license": "BSD-3-Clause",
   "author": {
@@ -25,7 +25,7 @@
   "style": "style/index.css",
   "repository": {
     "type": "git",
-    "url": "https://github.com/lydian/jupyterlab_hubshre.git"
+    "url": "https://github.com/lydian/jupyterlab_hubshare.git"
   },
   "scripts": {
     "build": "jlpm run build:lib && jlpm run build:labextension:dev",

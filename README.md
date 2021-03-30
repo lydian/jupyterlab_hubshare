@@ -1,6 +1,6 @@
 # jupyterlab_hubshare
 
-![Github Actions Status](https://github.com/lydian/jupyterlab_hubshre/workflows/Build/badge.svg)
+![Github Actions Status](https://github.com/lydian/jupyterlab_hubshare/workflows/Build/badge.svg)
 
 share notebooks on jupyterhub
 
@@ -28,7 +28,7 @@ pip install jupyterlab_hubshare
 ```
 
 ## Configuration
-The extension supports multiple use cases: 
+The extension supports multiple use cases:
 
 ### Use Case 1: All users on jupyterhub share the same Interface
 In this scenario, the path for user A and user B are exactly the same, therefore we only need to configure the URL
@@ -46,9 +46,9 @@ This is honestly my preferable settings, for example:
 
 - userA work space: `path/workspaces/userA/`
 - userB work space: `path/workspaces/userB/`
-- but both userA and userB have a `shortcut` folder links to `path/workspaces/` so that they can still check others workspaces. 
+- but both userA and userB have a `shortcut` folder links to `path/workspaces/` so that they can still check others workspaces.
 
-In this case, you can configure that with: 
+In this case, you can configure that with:
 ```python
 c.HubShare.share_url_template = {
     "path": "/user-redirect/"
@@ -60,7 +60,7 @@ This will make the shareable link looks like http://your.jupyter/user-redirect/?
 
 ### Use Case 3: User have their own work space, and they are unable to directly reach to others workspace
 This is much more like the previous scenario, but there's no `shortcut` folder to give access to other folder.
-In this case, you will need to also configure the contents_manager: 
+In this case, you will need to also configure the contents_manager:
 ```python
 c.HubShare.contents_maanger = {
     "manager_cls": FileContentManager,
@@ -135,10 +135,10 @@ By default, the `jlpm run build` command generates the source maps for this exte
 jupyter lab build --minimize=False
 ```
 
-There's also a quick target in Makefile: 
+There's also a quick target in Makefile:
 ```bash
 make venv
-``` 
+```
 build the workspace
 ```bash
 make build

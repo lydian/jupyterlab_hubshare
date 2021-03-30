@@ -2,3 +2,6 @@
 jupyterhub
 jupyterhub-simplespawner
 pre-commit
+pytest
+pytest-tornasync
+pytest-cov

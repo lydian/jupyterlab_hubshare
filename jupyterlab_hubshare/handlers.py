@@ -1,6 +1,7 @@
 import datetime
 import os
 import json
+import logging
 import urllib.parse
 from importlib import import_module
 
@@ -28,14 +29,11 @@ class BaseMixin(object):
         self.hub_share_config = self.config.get("HubShare", {})
         cm_config = self.hub_share_config.get("contents_manager")
         self._cm = (
-            create_manager(cm_config["manager_cls"], cm_config["kwargs"])
+            create_manager(cm_config["manager_cls"], cm_config.get("kwargs", {}))
             if cm_config
             else self.contents_manager
         )
-        import logging
-
-        logging.info(self.contents_manager)
-        logging.info(self._cm)
+        logging.info(f"Register contents manager: {type(self._cm)}")
 
     def get_notebook(self, path):
         if not self._cm.file_exists(path):
@@ -52,6 +50,29 @@ class BaseMixin(object):
         return json.dumps(content, default=convert_dt)
 
 
+def get_share_path(path_template, data):
+    def replace_pattern(pattern):
+        replace_kwargs = {}
+        if "{path}" in pattern:
+            replace_kwargs["path"] = data["path"]
+        if "{user}" in pattern:
+            replace_kwargs["user"] = os.environ["JUPYTERHUB_USER"]
+        if replace_kwargs:
+            pattern = pattern.format(**replace_kwargs)
+        return pattern
+
+    output = {
+        key: replace_pattern(path_template.get(key, "")) for key in ["base_url", "path"]
+    }
+    path = output["base_url"].rstrip("/") + output["path"]
+    if "qs" in path_template:
+        path += "?" + "&".join(
+            "{}={}".format(key, urllib.parse.quote(replace_pattern(value)))
+            for key, value in path_template["qs"].items()
+        )
+    return path
+
+
 class ShareURLHandler(BaseMixin, APIHandler):
     # The following decorator should be present on all verb methods (head, get, post,
     # patch, put, delete, options) to ensure only authorized user can request the
@@ -60,27 +81,7 @@ class ShareURLHandler(BaseMixin, APIHandler):
     def put(self):
         path_template = self.hub_share_config.get("share_url_template", {})
         data = json.loads(self.request.body)
-
-        def replace_pattern(pattern):
-            replace_kwargs = {}
-            if "{path}" in pattern:
-                replace_kwargs["path"] = data["path"]
-            if "{user}" in pattern:
-                replace_kwargs["user"] = os.environ["JUPYTERHUB_USER"]
-            if replace_kwargs:
-                pattern = pattern.format(**replace_kwargs)
-            return pattern
-
-        output = {
-            key: replace_pattern(path_template.get(key, ""))
-            for key in ["base_url", "path"]
-        }
-        path = output["base_url"].rstrip("/") + output["path"]
-        if "qs" in path_template:
-            path += "?" + "&".join(
-                "{}={}".format(key, urllib.parse.quote(replace_pattern(value)))
-                for key, value in path_template["qs"].items()
-            )
+        path = get_share_path(path_template, data)
         self.finish(json.dumps({"share_path": path}))
 
 

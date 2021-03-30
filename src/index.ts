@@ -109,8 +109,8 @@ const extension: JupyterFrontEndPlugin<void> = {
     });
 
     const params = new URLSearchParams(window.location.search);
-    if (params.get('path') && params.get('from') === 'share') {
-      const path = params.get('path');
+    if (params.get('share-path')) {
+      const path = decodeURIComponent(params.get('share-path'));
       const name = path.split('/').pop();
       console.log(`Found preview path: ${path}`);
       Promise.all([app.restored]).then(() => {
