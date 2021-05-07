@@ -30,3 +30,7 @@ def _load_jupyter_server_extension(server_app):
     server_app.log.info(
         "Registered Jupytelab_hubshare extension at URL path /jupyterlab_hubshare"
     )
+
+
+# For backward compatibility
+load_jupyter_server_extension = _load_jupyter_server_extension

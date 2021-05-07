@@ -71,7 +71,7 @@ Same as above, be aware that this will allow the other user directly modify the 
 This is much more like the previous scenario, but there's no `shortcut` folder to give access to other folder.
 In this case, you will need to also configure the contents_manager:
 ```python
-c.HubShare.contents_maanger = {
+c.HubShare.contents_manager = {
     "manager_cls": FileContentManager,
     "kwargs": {
         "root_dir": "path/to/workspaces/
