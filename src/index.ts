@@ -112,7 +112,9 @@ const extension: JupyterFrontEndPlugin<void> = {
     if (params.get('hubshare-preview')) {
       console.log(`original path: ${params.get('hubshare-preview')}`);
       const path = params.get('hubshare-preview');
-      const name = atob(path).split('/').pop();
+      const name = decodeURIComponent(Array.prototype.map.call(atob(path), function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+      }).join('')).split('/').pop();
       console.log(`Found preview path: ${path}`);
       Promise.all([app.restored]).then(() => {
         app.commands.execute(`${BASE_NAME}:preview`, { path, name });
