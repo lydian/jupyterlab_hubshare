@@ -114,9 +114,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       const path = params.get('hubshare-preview');
       const name = decodeURIComponent(
         Array.prototype.map
-          .call(atob(path), function(c) {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-          })
+          .call(atob(path), c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
           .join('')
       )
         .split('/')
