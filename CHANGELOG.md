@@ -1,3 +1,5 @@
+# v0.2.2
+- Fixed decode file name
 # v0.2.1
 - Backward Compatibility
 # v0.2.0
