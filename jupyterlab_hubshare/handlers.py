@@ -60,7 +60,9 @@ def get_share_path(use_jupyterhub_redirect, use_preview, base_url, path_template
     if use_preview:
         output_path = urllib.parse.quote(base64.b64encode(output_path.encode("utf-8")))
     url = "/user-redirect/" if use_jupyterhub_redirect else "/"
-    url += f"?hubshare-preview={output_path}" if use_preview else output_path
+    url += (
+        f"?hubshare-preview={output_path}" if use_preview else f"lab/tree/{output_path}"
+    )
     if base_url:
         url = base_url.rstrip("/") + url
     return url

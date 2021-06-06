@@ -97,7 +97,7 @@ class TestBaseMixin(object):
 )
 @pytest.mark.parametrize(
     "use_preview,expected_second_url_component",
-    [(True, "?hubshare-preview={FINAL_PATH}"), (False, "{FINAL_PATH}")],
+    [(True, "?hubshare-preview={FINAL_PATH}"), (False, "lab/tree/{FINAL_PATH}")],
 )
 @pytest.mark.parametrize(
     "path_template,input_path,expected_file_path",

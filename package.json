@@ -1,6 +1,6 @@
 {
   "name": "jupyterlab_hubshare",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "share notebooks on jupyterhub",
   "keywords": [
     "jupyter",

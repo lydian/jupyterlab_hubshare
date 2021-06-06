@@ -1,3 +1,5 @@
+# v0.2.3
+- Fixed no preview mode sharing path should include `/lab/tree/`
 # v0.2.2
 - Fixed decode file name
 # v0.2.1
