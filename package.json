@@ -70,7 +70,9 @@
   ],
   "styleModule": "style/index.js",
   "jupyterlab": {
-    "disabledExtensions": ["@jupyterlab/filebrowser-extension:share-file"],
+    "disabledExtensions": [
+      "@jupyterlab/filebrowser-extension:share-file"
+    ],
     "discovery": {
       "server": {
         "managers": [

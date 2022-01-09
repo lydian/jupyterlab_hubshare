@@ -36,6 +36,14 @@ class BaseMixin(object):
         )
         logging.info(f"Register contents manager: {type(self._cm)}")
 
+    def get_info(self, path):
+        decoded_path = base64.b64decode(path).decode("utf-8")
+        if not self._cm.file_exists(decoded_path) and not self._cm.dir_exists(
+            decoded_path
+        ):
+            raise tornado.web.HTTPError(404, reason=f"Path: {base64.decode} not Found")
+        return self._cm.get(decoded_path, content=False)
+
     def get_notebook(self, path):
         decoded_path = base64.b64decode(path).decode("utf-8")
         if not self._cm.file_exists(decoded_path):
@@ -106,6 +114,36 @@ class PreviewHandler(BaseMixin, IPythonHandler):
         self.finish(html)
 
 
+class ShareInfoHandler(BaseMixin, APIHandler):
+    @tornado.web.authenticated
+    def put(self):
+        path = self.get_argument("path")
+        self.finish(self.to_json(self.get_info(path)))
+
+
+class GetOtherLinksHander(BaseMixin, APIHandler):
+    def get(self):
+        self.finish(
+            self.to_json(
+                {
+                    "other_links": [
+                        {"id": key, "label": value["label"]}
+                        for key, value in getattr(
+                            self.hub_share_config, "other_link_functions", {}
+                        ).items()
+                    ]
+                }
+            )
+        )
+
+    def post(self):
+        data = json.loads(self.request.body)
+        func = getattr(self.hub_share_config, "other_link_functions", {})[data["id"]][
+            "path_func"
+        ]
+        self.finish(self.to_json({"id": data["id"], "path": func(data["path"])}))
+
+
 def setup_handlers(web_app):
     host_pattern = ".*$"
     base_url = url_path_join(web_app.settings["base_url"], "jupyterlab_hubshare")
@@ -113,6 +151,8 @@ def setup_handlers(web_app):
         "share-url": ShareURLHandler,
         "content": ContentHandler,
         "preview": PreviewHandler,
+        "info": ShareInfoHandler,
+        "other-link": GetOtherLinksHander,
     }
     handlers = [
         (url_path_join(base_url, route), handler)
