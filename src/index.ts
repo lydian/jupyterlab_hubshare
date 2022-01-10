@@ -21,39 +21,40 @@ const extension: JupyterFrontEndPlugin<void> = {
     const { tracker } = browser;
 
     requestAPI<any>('other-link').then(data => {
-      data.other_links.map((linkConf: {id: string, label: string}) => {
-        app.contextMenu.addItem({
-          command: `${BASE_NAME}:other-link-${linkConf.id}`,
-          selector: '.jp-DirListing-item',
-          rank: 3
-        });
-        app.commands.addCommand(`${BASE_NAME}:other-link-${linkConf.id}`, {
-          label: `Copy ${linkConf.label}`,
-          execute: () => {
-            const widget = tracker.currentWidget;
-            if (!widget) {
-              return;
-            }
-            const path = widget.selectedItems().next().path;
-            console.log(path);
-            requestAPI<any>('other-link', {
-              method: 'POST',
-              body: JSON.stringify({ path, id: linkConf.id })
-            }).then(data => {
-              let url = data.path as string;
-              console.log(data);
-              if (!url.startsWith('http://') || !url.startsWith('https://')) {
-                url = new URL(url, window.location.href).href;
+      (data.other_links || []).map(
+        (linkConf: { id: string; label: string }) => {
+          app.contextMenu.addItem({
+            command: `${BASE_NAME}:other-link-${linkConf.id}`,
+            selector: '.jp-DirListing-item',
+            rank: 3
+          });
+          app.commands.addCommand(`${BASE_NAME}:other-link-${linkConf.id}`, {
+            label: `Copy ${linkConf.label}`,
+            execute: () => {
+              const widget = tracker.currentWidget;
+              if (!widget) {
+                return;
               }
-              console.log(url);
-              Clipboard.copyToSystem(url);
-            });
-          },
-          iconClass: 'jp-MaterialIcon jp-LinkIcon'
-        });
-      });
+              const path = widget.selectedItems().next().path;
+              console.log(path);
+              requestAPI<any>('other-link', {
+                method: 'POST',
+                body: JSON.stringify({ path, id: linkConf.id })
+              }).then(data => {
+                let url = data.path as string;
+                console.log(data);
+                if (!url.startsWith('http://') || !url.startsWith('https://')) {
+                  url = new URL(url, window.location.href).href;
+                }
+                console.log(url);
+                Clipboard.copyToSystem(url);
+              });
+            },
+            iconClass: 'jp-MaterialIcon jp-LinkIcon'
+          });
+        }
+      );
     });
-
 
     app.commands.addCommand(`${BASE_NAME}:preview`, {
       caption: 'Preview Shared Notebook',

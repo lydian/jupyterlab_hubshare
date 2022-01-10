@@ -1,5 +1,6 @@
-# v0.2.4
+# v0.3.0
 - Allow adding `other_link` to copy link to external site.
+- Allow setting `file_path_func` to provide a more flexible way to configure path.
 # v0.2.3
 - Fixed no preview mode sharing path should include `/lab/tree/`
 # v0.2.2

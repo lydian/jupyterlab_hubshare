@@ -85,6 +85,36 @@ This will make the shareable link looks like http://your.jupyter/user-redirect/?
 
 Note that given that the current contents manager doesn't have access to other users workspaces, setting `use_preview=False` will make invalid link.
 
+## Rewrite Shared File Path
+In general, you can use `file_path_template` to provide a easy way to rewrite the shared file path. However, if you
+want a more complicated rule for path rewrite. You can use `file_path_func` instead.
+```
+def get_share_path(path):
+    return f"actual_folder/{path}" if path.startswith("folderA"/) else path
+
+c.HubShare.file_path_func = get_share_path
+```
+- You shoud choose either `file_path_func` or `file_path_template`. If both set, we will only use `file_path_func` and ignore `file_path_template`
+
+## Copy link to external sites
+Starting 0.3.0, you are now able to copy custom link to any external site. For example, copy the link to github, or some related url.
+To do so, please add the following config:
+```python
+c.HubShare.other_link_functions = {
+    "github": {
+        "label": "github URL",
+        "path_func": lambda path: f"https://github.com/test/repo/{path}"
+    },
+    "view-only": {
+        "label": "other URL",
+        "path_func": lambda path: f"http://example.com/prefix/{path}"
+    }
+}
+```
+- the dict key is just an identifiable ID so that we are able to find the correct path_func to update. You can use anything
+- `label` is the actul item visible on your context. It will be shown as "Copy {LABEL}".
+- `path_func` is a function that takes `path` as argument, and return the expected url to create
+
 
 ## Troubleshoot
 

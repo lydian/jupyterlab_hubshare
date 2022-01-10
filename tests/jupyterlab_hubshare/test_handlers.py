@@ -100,10 +100,11 @@ class TestBaseMixin(object):
     [(True, "?hubshare-preview={FINAL_PATH}"), (False, "lab/tree/{FINAL_PATH}")],
 )
 @pytest.mark.parametrize(
-    "path_template,input_path,expected_file_path",
+    "path_template,path_func,input_path,expected_file_path",
     [
-        ("{path}", "path/to/file", "path/to/file"),
-        ("{user}/{path}", "path/to/file", "test_user/path/to/file"),
+        ("{path}", None, "path/to/file", "path/to/file"),
+        ("{user}/{path}", None, "path/to/file", "test_user/path/to/file"),
+        ("{user}/{path}", lambda p: f"new/{p}", "path/to/file", "new/path/to/file"),
     ],
 )
 @pytest.mark.parametrize(
@@ -114,6 +115,7 @@ def test_get_share_path(
     use_preview,
     base_url,
     path_template,
+    path_func,
     input_path,
     expected_first_url_component,
     expected_second_url_component,
@@ -138,6 +140,7 @@ def test_get_share_path(
             use_preview,
             base_url,
             path_template,
+            path_func,
             {"path": input_path},
         )
         == expected_final_path

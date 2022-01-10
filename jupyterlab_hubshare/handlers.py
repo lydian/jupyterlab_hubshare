@@ -60,11 +60,16 @@ class BaseMixin(object):
         return json.dumps(content, default=convert_dt)
 
 
-def get_share_path(use_jupyterhub_redirect, use_preview, base_url, path_template, data):
+def get_share_path(
+    use_jupyterhub_redirect, use_preview, base_url, path_template, path_func, data
+):
 
-    output_path = path_template.format(
-        user=os.environ.get("JUPYTERHUB_USER"), path=data["path"]
-    )
+    if path_func:
+        output_path = path_func(data["path"])
+    else:
+        output_path = path_template.format(
+            user=os.environ.get("JUPYTERHUB_USER"), path=data["path"]
+        )
     if use_preview:
         output_path = urllib.parse.quote(base64.b64encode(output_path.encode("utf-8")))
     url = "/user-redirect/" if use_jupyterhub_redirect else "/"
@@ -83,6 +88,7 @@ class ShareURLHandler(BaseMixin, APIHandler):
     @tornado.web.authenticated
     def put(self):
         path_template = self.hub_share_config.get("file_path_template", "{path}")
+        path_func = self.hub_share_config.get("file_path_func", None)
         use_jupyterhub_redirect = self.hub_share_config.get(
             "use_jupyterhub_redirect", True
         )
@@ -90,7 +96,12 @@ class ShareURLHandler(BaseMixin, APIHandler):
         base_url = self.hub_share_config.get("base_url", None)
         data = json.loads(self.request.body)
         path = get_share_path(
-            use_jupyterhub_redirect, use_preview, base_url, path_template, data
+            use_jupyterhub_redirect,
+            use_preview,
+            base_url,
+            path_template,
+            path_func,
+            data,
         )
         self.finish(json.dumps({"share_path": path}))
 
@@ -128,8 +139,8 @@ class GetOtherLinksHander(BaseMixin, APIHandler):
                 {
                     "other_links": [
                         {"id": key, "label": value["label"]}
-                        for key, value in getattr(
-                            self.hub_share_config, "other_link_functions", {}
+                        for key, value in self.hub_share_config.get(
+                            "other_link_functions", {}
                         ).items()
                     ]
                 }
